@@ -1,0 +1,95 @@
+# Title: An HTML5 WebBased Base 3D rendering Game,一款基于HTML5 WebGL的3D建模工具
+# 简介
+keyword: WebGL html5 websocket 3D 物理引擎 跨平台游戏 threejs nodejs
+这是一款利用了websocket,html5,webgl,nodejs等新技术编写的一款3D多人联机对战游戏.在很长一段时间里web仅仅使用做普通的网页浏览并没有用作别的什么更加复杂的活动,而如今随着w3c组织的活跃和各大浏览器厂商的不断创新和尝试,web平台被赋予了更多的价值可能性.随着新的HTML5的API的开放比如webgl和websocket,在浏览器上有了发展新的应用的可能性了.另一方面通过使用javascript的后端渲染技术--nodejs,我们能够更好的实现跨平的兼容,甚至前端和后端共享一份代码,而本文就为探索这种可能性做了一次尝试. 探索了跨同台的web3D游戏的制作.
+
+
+# 正文
+## 研究背景
+随着时间和科技的发展,各种各样的平台出现了,随着时间段的推移,新的平台会出现,人们有序要对新的平台进行开发.这样会消耗大量的成本。那么为了避免这种问题,我们可以选择在虚拟机上开发程序(比如使用Java)或者选择用浏览器(Web)这种在任何设备上都能兼容运行的程序来编写我们的通用程序.
+
+之前有许多前人探索了在Web上利用HTML5+WebSocket开发游戏的功能,比如Mozilla开发的2D平面多人RPG游戏 http://browserquest.mozilla.org/, 也有人探索了Web上基于HTML5+ WebGL的3D游戏,而本文则结合了两者的突破,开发了一款基于HTML5+WebSocket+WebGL所开发的一款多人3D对战游戏x-nolava.通过这样一种尝试探索了web开发的新的可能性,向着把不同应用推向web的工作更加的推进了一步,希望能给后面制作的人一些参考意义。
+
+## 技术背景
+### W3C介绍
+1.W3C 指（World Wide Web Consortium）,中文意思是W3C理事会或万维网联盟.
+2.W3C 是一个会员组织,是由 Tim Berners-Lee 创建,目前是万维网联盟的主任.
+3.W3C 创建于1994年10月.
+4.W3C 标准被称为 W3C 推荐（W3C Recommendations）.
+5.W3C 的主要核心工作是对 web 进行标准化 .
+6.W3C 创建并维护 WWW 标准.
+7.W3C组织是一个非赢利组织
+W3C为解决 Web 应用中不同平台、技术和开发者带来的不兼容问题，保障 Web 信息的顺利和完整流通，万维网联盟制定了一系列标准并督促 Web 应用开发者和内容提供者遵循这些标准。标准的内容包括使用语言的规范，开发中使用的导则和解释引擎的行为等等。W3C也制定了包括XML和CSS等的众多影响深远的标准规范。 但是，W3C 制定的 web 标准似乎并非强制而只是推荐标准。因此部分网站仍然不能完全实现这些标准。特别是使用早期所见即所得网页编辑软件设计的网页往往会包含大量非标准代码。
+
+本文中所使用的技术除了nodejs其他全部都是W3C制定的标准并且后面由浏览器厂商实现的.
+
+### html5 介绍
+![html5 logo](http://www.1stwebdesigner.com/wp-content/uploads/2013/02/html5_logo.png)
+HTML5与CSS3和仍处于发展。 W3C计划明年发布一个稳定的版本，但它仍然看起来像这是一个长镜头。自其发布以来，HTML5一直在不断的发展中，与W3C添加更多和更令人印象深刻的功能，因此，HTML5的发展将很快结束，这不一定是坏事，这似乎不太可能。
+
+HTML5是HTML4.01的继任者，在1999年首次发布。互联网自1999年已经显著的发生了改变，HTML5创建是必要的。根据预先设定的标准开发新的标记语言,包括了一下的一些特性：
+
+新特性应该基于HTML，CSS，DOM和JavaScript。
+需要外部插件（如Flash），需要减少。
+错误处理应该是比以前的版本更容易。
+脚本具有多个标记来取代。
+HTML5应该是与设备无关的。
+的发展过程应该是向公众可见。
+HTML5包含大量的原来本地应用才可能使用的优质API。
+
+### WebGL
+WebGL的（Web图形库）是一个JavaScript API渲染交互式3D图形和2D图形在任何兼容的Web浏览器运行库，无需使用插件。 WebGL是完全集成到所有的Web标准的浏览器允许使用GPU加速的物理和图像处理效果的网页Canvas。 WebGL的元素，可混有其他HTML元素并合成 WebGL的计划包括控制在JavaScript编写的代码和着色器执行的代码,来对电脑的图形处理单元（GPU）的页面或页面背景的其他部分的控制。 ，WebGL是设计和维护由Khronos集团非营利。
+
+WebGL是基于OpenGL ES 2.0的3D图形，并提供了一个API。为了安全起见，GL_ARB_robustness（的OpenGL3.x的）或GL_EXT_robustness（OpenGL ES的）是必要的。它使用HTML5 canvas元素和使用文档对象模型接口访问。自动内存管理是JavaScript语言的一部分。
+WebGL缺乏OpenGL 3.0的矩阵数学方法。而此功能是通过使用JavaScript代码空间的用户来完成，这经常辅以必要的代码矩阵库，如glMatrix，TDL，或MJS来实现。
+
+### WebSocket
+WebSocket是HTML5开始提供的一种浏览器与服务器间进行全双工通讯的网络技术。 WebSocket通信协定于2011年被IETF定为标准 RFC 6455，WebSocketAPI被W3C定为标准。
+在WebSocket API中，浏览器和服务器只需要要做一个握手的动作，然后，浏览器和服务器之间就形成了一条快速通道。两者之间就直接可以数据互相传送。
+
+现在，很多网站为了实现推送技术，所用的技术都是轮询。轮询是在特定的的时间间隔（如每1秒），由浏览器对服务器发出HTTP request，然后由服务器返回最新的数据给客户端的浏览器。这种传统的模式带来很明显的缺点，即浏览器需要不断的向服务器发出请求，然而HTTP request 的header是非常长的，里面包含的数据可能只是一个很小的值，这样会占用很多的带宽和服务器资源。
+而比较新的技术去做轮询的效果是Comet，使用了AJAX。但这种技术虽然可达到双向通信，但依然需要发出请求，而且在Comet中，普遍采用了长链接，这也会大量消耗服务器带宽和资源。
+面对这种状况，HTML5定义了WebSocket协议，能更好的节省服务器资源和带宽并达到实时通讯。
+
+服务器与客户端之间交换的标头信息很小，大概只有2字节。（早期版本）
+服务器推送 [编辑]
+服务器可以主动传送数据给客户端。
+握手协议 [编辑]
+
+在实现websocket连线过程中，需要透过浏览器发出websocket连线请求，然后服务器发出回应，这个过程通常称为“握手” (handshaking)。
+PS:后期的版本大多属于功能上的扩充，例如使用第7版的握手协议同样也适用于第8版的握手协议。
+例子 [编辑]
+为第13版且浏览器为Chrome的例子
+浏览器请求
+
+```GET / HTTP/1.1
+Upgrade: websocket
+Connection: Upgrade
+Host: example.com
+Origin: null
+Sec-WebSocket-Key: sN9cRrP/n9NdMgdcy2VJFQ==
+Sec-WebSocket-Version: 13```
+
+服务器回应
+``HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: fFBooB7FAkLlXgRSz0BT3v4hq5s=
+Sec-WebSocket-Origin: null
+Sec-WebSocket-Location: ws://example.com/```
+
+在请求中的“Sec-WebSocket-Key”是随机的，服务器端会用这些数据来构造出一个SHA-1的信息摘要。
+把“Sec-WebSocket-Key”加上一个魔幻字符串“258EAFA5-E914-47DA-95CA-C5AB0DC85B11”。使用 SHA-1 加密，之后进行 BASE-64编码，将结果做为 “Sec-WebSocket-Accept” 头的值，返回给客户端。
+实现websocket的协议，浏览器扮演着一个很重要的角色。Google在它的Google Chrome支持了websocket，Chrome 5 之后的版本都支持websocket，但因为websocket还未最终版本，草案不断更新，所以不同的版本会支持不同的草案。
+
+苹果公司的Safari浏览器也支持websocket。(iPhone4上的safari使用的WebSocket是旧版的握手协议,可以使用本页的握手协议来制做服务器端)
+起初，Mozilla基金会的Mozilla Firefox会在4版本支持websocket。Opera软件公司方面在Opera 10.7和11.0的预览版本中也支持了websocket。然而，基于安全因素的考虑[1]，两家宣布将暂时移除该功能。
+FireFox预计于版本6重新实现WebSockets RFC Version -07 ，但此版本实现并不向后兼容，故旧版本的服务器实现软件有可能无法顺利运行。版本6之中的WebSocket功能将会默认打开[2]。
+PS: 在FireFox6的版本里，WebSocket 被更名为 MozWebSocket，但是该 class 的成员与用法皆与 WebSocket 相同。
+
+### threejs 
+Threejs 是由MRDoob 开发的一款基于Web的开源3D基础框架,主要包括了简单的数学预算比如偶拉和4元数的变换,和基本的obj模型读取工具以及场景相机等3D中最基本的元素。随着Threejs 的出现我们现在能够更快的开发出web中的3D应用了,而不用花过多的时间在构建基础框架上.
+最新版本的threejs文档和安装方法可以参考 https://github.com/mrdoob/three.js/
+
+### nodejs
+ nodejs
