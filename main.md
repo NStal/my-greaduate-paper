@@ -92,4 +92,29 @@ Threejs 是由MRDoob 开发的一款基于Web的开源3D基础框架,主要包�
 最新版本的threejs文档和安装方法可以参考 https://github.com/mrdoob/three.js/
 
 ### nodejs
- nodejs
+ nodejs 是一款利用chrome的javascript engine V8 作为核心支持commonjs,Module2.0规范的一款javascript后台实现,nodejs的特性在于利用libuv而达到了大吞吐量异步IO的效果.使用nodejs的另外一个优点是可以在前端和后太共享代码,从而真正意义上的达到了一次开发随处部署的程序员之梦.而对于开发多人联机游戏而言,使用nodejs的话能够在前台和后台使用同样的一套物理引擎进行演算,因此能够很好的重复利用代码,也不容易出现代码不同步的bug.
+
+### coffee-script
+coffee-script 是一门类似ruby的语言,他能够编译成javascript也可以直接在后台运行(基于nodejs)另一方面语法更加简介高效,有很好的iteraion和class支持,大量的提高了开发的效率
+
+### chrome debugger 和 source-map
+[chrome的debugger的截图](http://invalid/invalid.jpg)
+chrome debugger是在web可发和后台nodejs开发过程中的神器,可以用作断点追踪和性能分析.
+[chrome break point的截图](http://invalid/inavlid.jpg)
+[chrome profiler 的截图](http://invalid/invalid.jpg)
+另一方面由于我们使用coffee-script,所以不能简单的像javascript那样调试,但是在近两个月chrome和firefox同时提供了source-map这项技术的支持,因此我们可以使用source-map把编译成的javascript代码映射到我们编写的coffee-script中去,从而达到了直接调试coffee-script的效果.
+
+## 模块介绍
+### 前端模块
+#### 资源加载模块
+为了游戏的体验,必要的资源必须在游戏开始之前就进行加载.为了达到这个目 的我编写了一个叫做ResourceManager的模块进行对比要资源的预先加载工作.通过Ajax基数异步加载所需要的图片和数据.值得一提的是,为了方便前端处理,图片和和3D点阵文理等信息都是通过预处理变成前端容易解析的base64格式或者json数组文件传输的,大大的提高了前端的启动速度.预处理可以处理包括
+
+除了加载文件本身之外还会对文件进行组装工作,把文件从单独的点阵图片和着色信息封装成3D物件,方便后续直接调用.3D物件的封装主要分为3种:Sprite,Cube,NormalMesh.Sprite一般就是平面的物体,主要是用在HUD(Head Up Display)上.Cube则就是整个游戏场景.NormalMesh就是普通的模型.对于普通的模型,也会根据反光漫反射等参数对原有的模型进行一些修正以达到更好的显示效果.
+#### 代码共享模块
+由于后台的js模块之间使用的是commonjs模块2.0标准.这个标准是一个同步阻塞的标准,在模块引入之前会阻塞知道模块成功载入,变成非常方便.但是前端的模块载入是异步的,只能按照js引入的顺序加载才能同步.按需加载必须是异步的.这样就为前端和后台共享代码造成了一定的困扰.为了解决这个问题,我只做了一套兼容库,先按照前台的方式同步顺序同步载入,全部载入完成之后在伪造commonjs里的require方法同步返回全局对象,然后直接通过全局对象引用模块.这样只需要在浏览器端引入额外的兼容层就可以支持标准了.但是这样做也是有一个缺点的.缺点是会污染全局变量,模块与模块之间也并没有真正意义上的隔离.所以作为不到1w行的小项目,这个方案还是可行的,但是对于真正的大项目,则应该采用更加复杂的方案比如seajs[link to sea js] 这种AMD模式的异步加载库或者browserify[link to browserify]的预编译功能达到后台前台的代码共享.
+
+#### 通讯模块
+与传统的实时web构架不同,多人游戏开使用HTTP Long Pull 长连接效率不够无法有效的翔服务器发送信息,开销也非常大.这里我们使用了基于HTML5标准的websocket接口构建客户端与服务器的通讯.
+同样为了能够在服务器端和客户端之间有效合理的共享代码,这里我写了一个中间层的基类叫做RPCtunnel,基于nodejs标准的eventEmitter事件发生器.然后基于RPCTunnel 通过不同的传输方式比如server端的websocket库ws,或者浏览器端的websocket构建统一的接口.抽象成对Remote Public Call的形式.那么远程的通讯就变成了直接函数调用编程非常方便.
+
+另一方面,考虑到游戏对实时性的需求,除了部分信息同步的RPC,所有的RPC都是默认不等待返回值的.然后通过发送命令时的同步矫正来纠正传输过程中因为时间或者网络延迟所导致的问题.
