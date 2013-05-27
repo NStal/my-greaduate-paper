@@ -1,0 +1,115 @@
+# How it works:
+# We introduct a new concept called Tracer
+# Tracer is used to adopt a physics object to
+# allow it show on screen
+# just like real world
+# we use the tracer to trace the physical state
+# of the object and tell displayer to  display it on screen.
+# Tracer is attached to object when it's added to world
+# and removed when it's removed from the world
+# Every time displayer needs render or update
+# we call every tracer to update the infos.
+class Displayer extends Leaf.Widget
+    constructor:()->
+        super("#scene")
+    setWorld:(world)->
+        console.assert world
+        @world = world
+        @world.on "add",(object)=>
+            @attachTracer(object)
+        @world.on "remove",(object)=>
+            @removeTracer(object)
+    setup:()->
+        @setupEnvironment()
+        @setupScene()
+        @environment = new SpaceEnvironment()
+        @environment.show()
+        
+    setupEnvironment:()->
+        @frameRate = 70
+        @canvas = @UI.canvas
+        @height = window.innerHeight
+        @width = window.innerWidth
+        @canvas.width = @width
+        @canvas.height = @height
+        @ratio = @width/@height
+    setupScene:()->
+        @scene = new Three.Scene()
+
+        @camera = new Static.ShipCamera(35,@ratio,1,1000000000)
+        @camera.position.z = 300
+        @scene.add(@camera)
+        
+        @renderer = new Three.WebGLRenderer({canvas:@canvas,antialias:true,clearColor:0x000000})
+        @renderer.setClearColor(0x000000, 1);
+        @renderer.setSize(@width,@height)
+
+        #@composer = new Three.EffectComposer(@renderer);
+        #@renderPass = new Three.RenderPass(@scene,@camera)
+        #@composer.addPass(@renderPass)
+        #hblur = new Three.ShaderPass(Three.HorizontalBlurShader)
+        #vblur = new Three.ShaderPass( Three.VerticalBlurShader )
+        #vblur.renderToScreen = true;
+        #@composer.addPass( hblur ); 
+        #@composer.addPass( vblur );
+        ambient = new Three.AmbientLight( 0x999999 ,0.9);
+        directionalLight = new Three.DirectionalLight(0xffffff,0.7)
+        directionalLight.position.set(1,1,2).normalize()
+        pointLight = new Three.PointLight(0x224488,0.9);
+        pointLight.position.set(0,0,0)
+        
+        @scene.add(ambient) 
+        @scene.add(directionalLight)
+        @scene.add(pointLight)
+    
+    update:()->
+        @camera.update()
+        console.assert @world
+        for obj in @world.objects
+            if obj.tracer
+                obj.tracer.update()
+
+        @renderer.render(@scene,@camera)
+    attachTracer:(object)->
+        if object instanceof Ship
+            tracer = new ShipTracer(object)
+            tracer.show()
+    removeTracer:(object)->
+        if not object.tracer
+            return
+        object.tracer.hide()
+        
+            
+
+class ShipTracer extends EventEmitter
+    constructor:(object)->
+        super()
+        object.tracer = this
+        @target = object
+        @mesh = Static.resourceManager.getMesh("ship")
+        @mesh.useQuaternion = true
+    update:()->
+        @mesh.position.copy @target.position
+        @mesh.quaternion.copy @target.quaternion
+    show:()->
+        @emit "show"
+        if @isShown
+            return
+        Static.game.displayer.scene.add @mesh
+        @isShown = true
+    hide:()->
+        @emit "hide"
+        if not @isShown
+            return
+        Static.game.displayer.scene.remove @mesh
+class SpaceEnvironment extends EventEmitter
+    constructor:()->
+        super()
+        # pass
+        @cube = Static.resourceManager.getMesh("environmentCube")
+    show:()-> 
+        Static.game.displayer.scene.add @cube
+    hide:()->
+        Static.game.displayer.scene.remove @cube
+exports.Displayer = Displayer
+exports.SpaceEnvironment = SpaceEnvironment

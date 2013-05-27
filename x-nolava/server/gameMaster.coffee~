@@ -1,0 +1,39 @@
+require "coffee-script"
+EventEmitter = (require "events").EventEmitter
+PhysicsObject = (require "../common/physics").PhysicsObject
+Ship = (require "../common/ship").Ship
+Static = (require "./static").Static
+class User
+    constructor:(username,session)->
+        @username = username
+        @session = session
+        @session.user = this
+class GameMaster extends EventEmitter
+    constructor:()->
+        @users = []
+    newUserEnterGame:(session,username)->
+        user =  new User(username,session)
+        user.ship = new Ship({id:PhysicsObject.getNewId()})
+        user.ship.user = user
+        @users.push user
+        Static.world.add user.ship
+        for item in Static.server.sessions
+            item.client.update(user.ship.toData())
+        return user.ship.id
+    update:(session,state)->
+        if not session.user.ship
+            console.error "User Dont Has An Ship"
+            return null
+        ship = session.user.ship
+        if ship.state is state
+            return true
+        ship.state = state
+        data = ship.toData()
+        for item in Static.server.sessions
+            item.client.update(data)
+        return true
+        
+        
+        
+        
+ exports.GameMaster = GameMaster

@@ -1,0 +1,101 @@
+Three = (require "../common/three-node.js").THREE
+Vector3 = Three.Vector3
+Quaternion = Three.Quaternion
+EventEmitter = (require "events").EventEmitter
+
+class PhysicsObject extends EventEmitter
+    constructor:(id)->
+        if typeof id is "number"
+            @id = parseInt(id)
+        else if typeof id is "string" and not isNaN(parseInt(id) )
+            @id = parseInt(id)
+        else
+            @id = PhysicsObject.getNewId() 
+        @position = new Vector3()
+        @velocity = new Vector3()
+        @quaternion = new Quaternion()
+        @rotateVelocity = new Vector3()
+        @rotateAcceleration = new Vector3()
+        @force = new Vector3()
+        #using mass as one turn @force in to @acceloration
+        @mass = 1
+        # used to preform Stork Drag
+        # not currently enabled
+        # @resistFactor = 0.1 
+        
+        @minUpdates = 10 #microsecond less than this will be kept
+        @maxUpdates = 100 #more than this will doit nextime
+
+        # to avoid using hark storke drag intergrate
+        # we simply set max speed and max rotate speed
+        @maxSpeed = 1000
+        @maxRotateSpeed = 1
+    updateState:(state)->
+        return
+    updatePhysics:(deltaTime)->
+        # deltaTime in ms
+        while deltaTime > @maxUpdates
+            @updatePhysics(@maxUpdates)
+            deltaTime -= @maxUpdates
+        console.assert deltaTime >= 0
+        for prop in ["x","y","z"]
+            do (prop)->
+                @position[prop]+= RK4 deltaTime,(t)->
+                    return @velocity[prop]+t*@force[prop]/@mass
+                
+            @velocity[prop] += t*@force[prop]/@mass
+        if @velocity.length() > @maxSpeed
+            @velocity.normalize()
+            @velocity.multiplyScalar(@maxSpeed)
+        # handle rorate
+        # using Euler Integrate
+        rotation = @rotateVelocity.clone().multiplyScalar(deltaTime/1000)
+        rotationQuaternion = new Quaternion().setFromEuler(rotation)
+        
+        @quaternion.multiply(rotationQuaternion)
+        # instead using stork drag simply set max rotate speed here
+        @rotateVelocity.add(@rotateAcceleration)
+        if @rotateVelocity.length() > @maxRotateSpeed
+            @rotateVelocity.normalize().multiplyScalar(@maxRotateSpeed)
+    update:()->
+        @updatePhysics()
+PhysicsObject.UsedId = 0
+PhysicsObject.getNewId = ()->
+    PhysicsObject.UsedId += 1
+    return PhysicsObject.UsedId
+class World extends EventEmitter
+    constructor:()->
+        super()
+        @objects = []
+    update:()->
+        for object in @objects
+            object.update()
+    add:(object)->
+        console.assert object instanceof PhysicsObject
+        @objects.push object
+        @emit "add",object
+    remove:(target)->
+        for object,index in @objects
+            if object is target
+                @objects.splice(index,1)
+                @emit "remove",object
+                return true
+        return false
+    updateState:(id,state)->
+        for item in @objects
+            if item.id is id
+                return true
+        
+            
+RK4 = (delta,xFunc)->
+    k1 = delta*xFunc(0)
+    k2 = delta*xFunc(0+delta/2)
+    k3 = delta*xFunc(0+delta/2)
+    k4 = delta*xFunc(0+delta)
+    y1 = k1/6+k2/3+k3/3+k4/6
+    return y1
+    
+        
+exports.PhysicsObject = PhysicsObject
+exports.World = World 
+                     

@@ -1,0 +1,47 @@
+class KeyMaster extends Leaf.KeyEventManager
+    constructor:()->
+        super()
+        @attachTo window
+        @master()
+        keys = ["up","down","right","left","space"]
+        @Key = []
+        @on "keydown",(e)=>
+            if e.ctrl
+                @Key.ctrl = true
+            else
+                @Key.ctrl = false
+            if e.alt
+                @Key.alt = true
+            else
+                @Key.alt = false
+            for key in keys
+                if Leaf.Key[key] is e.which
+                    @Key[key] = true
+                    break
+        @on "keyup",(e)=>
+            for key in keys
+                if Leaf.Key[key] is e.which
+                    @Key[key] = false
+                    break
+            if e.ctrl
+                @Key.ctrl = true
+            else
+                @Key.ctrl = false
+            if e.alt
+                @Key.alt = true
+            else
+                @Key.alt = false
+    solve:()->
+        if not Static.game.userShip
+            console.log "not user ship, so can't control"
+            return
+        state = (@Key.up and Ship.State.up or 0) |
+            (@Key.left and Ship.State.left or 0) |
+            (@Key.down and Ship.State.down or 0) |
+            (@Key.right and Ship.State.right or 0)
+        console.log state,Static.game.userShip.state
+        if state isnt Static.game.userShip.state
+            Static.game.server.update state 
+                
+
+Static.KeyMaster = KeyMaster

@@ -1,0 +1,82 @@
+PhysicsObject = require("./physics").PhysicsObject 
+class Ship extends PhysicsObject
+    constructor:(data)->
+        console.assert data
+        super(data)
+        state = 0
+        @__defineGetter__ "state",()->
+            return state
+        @__defineSetter__ "state",(value)->
+            if value isnt state
+                state = value
+        if data.state
+            @state = data.state
+        # Maybe a better name?
+        @parameters = {}
+        @params = @parameters
+        @params.speedAcceleration = 1
+        @params.rotateAccelerationNormal = 0.001
+        @params.maxRotateSpeedNormal = 0.5
+    updatePhysicsByShipState:()-> 
+        if @state & Ship.State.left > 0
+            @rotateAcceleration.y = 1
+        else if @state & Ship.State.right > 0
+            @rotateAcceleration.y = -1
+        else
+            @rotateAcceleration.y = 0
+        
+        if @state & Ship.State.up > 0
+            @rotateAcceleration.x = 1
+        else if @state & Ship.State.down > 0 
+            @rotateAcceleration.x = -1
+        else
+            @rotateAcceleration.x = 0
+        if @state & Ship.forward > 0
+            @force.set(0,0,1)
+            @force.applyQuaternion(@quaternion).multiplyScalar(@params.speedAcceleration)
+        else
+            @force.set(0,0,0)
+        if @rotateAcceleration.length() > 0.01
+            @rotateAcceleration.normalize().multiplyScalar(@params.rotateAccelerationNormal)
+        @maxSpeed = @params.maxSpeed or  1000
+        @maxRotateSpeed = @params.maxRotateSpeedNormal or 1
+        console.log "ShipState:RotateAcceleration",@rotateAcceleration
+    updateProperties:(data)->
+        super(data)
+        console.log "updateProperties",data
+        if typeof data.state is "number"
+            @state = data.state
+    update:()->
+        @updatePhysicsByShipState()
+        super()
+    toData:()->
+        data = super()
+        data.state = @state
+        data.constructor = "Ship"
+        console.log "ship to data",data
+        return data
+        
+# using bit to combine compatible and imcompatible action
+binaryToInt = (binaryString)->
+    result = 0
+    for byte in binaryString
+        result *= 2
+        console.assert byte is "0" or byte is "1"
+        if byte is "1"
+            result += 1
+    return result
+Ship.State = {
+    left:             "10",
+    right:            "11",
+    up:             "1000",
+    down:           "1100",
+    forward:       "10000",
+    fire:         "100000",
+}
+# transfor to banari
+do ()->
+    for state of Ship.State
+        Ship.State[state] = binaryToInt(Ship.State[state])
+console.log "STATES",Ship.State 
+PhysicsObject.constructors.Ship = Ship
+exports.Ship = Ship

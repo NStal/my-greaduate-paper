@@ -1,0 +1,6 @@
+SharedSettings = 
+    serverHost:"vuvu"
+    serverPort:1223
+    frameRate:60
+    
+exports.SharedSettings = SharedSettings

@@ -1,0 +1,162 @@
+EventEmitter = (require "events").EventEmitter
+class NodeWSTunnel extends EventEmitter
+    constructor:(ws)->
+        super()
+        if not ws
+            return 
+        ws.on "message",(message)=>
+            try
+                JSON.parse(message.toString())
+            catch e
+                console.trace()
+                console.error e
+                return
+            @emit "data",JSON.parse(message)
+        @ws = ws
+        @isReady = true
+    write:(json)->
+        console.assert @ws
+        @ws.send JSON.stringify(json)
+        return
+# browser side tunnel
+class WebSocketTunnel extends EventEmitter
+    constructor:(ws)->
+        super()
+        if not ws
+            return
+        @ws = ws
+        ws.addEventListener "message",(message)=>
+            try
+                data = JSON.parse(message.data.toString())
+            catch e
+                console.error e
+                console.trace()
+                return 
+            @emit "data",data
+        @isReady = true
+    write:(json)->
+        console.assert @ws
+        console.assert json instanceof Object
+        @ws.send JSON.stringify(json)
+        
+            
+# tunnel
+# should emit EVENT:data(json)
+# and allow to write(json)
+class RPCInterface
+    constructor:(tunnel)->
+        
+        @callBuffer = []
+        @_requests = []
+        if tunnel
+            @setTunnel(tunnel)
+    setTunnel:(tunnel)->
+        console.assert tunnel
+        tunnelId = parseInt(Math.random()*100000)
+        @tunnelId = tunnelId
+        @tunnel = tunnel
+        @tunnel.on "data",(data)=>
+            if tunnelId isnt @tunnelId
+                console.log "tunnel changed"
+                # tunnel changed
+                return
+            if not data.ticket
+                return
+            @handleResponse(data)
+
+    handleResponse:(response)->
+        has = false
+        for req,index in @_requests
+            @_requests.splice(index,1)
+            if req.id is response.ticket
+                has = true 
+                if req.callback
+                    req.callback(response.err,response.data)
+            break 
+        if not has
+            console.warn "recieve invalid response of invalid ticket",response
+                
+    declare:(name,paramsDeclare...)->
+        # paramsDeclare is just for human read convinience it actually do nothing
+        # console.log "declare RPC for #{name}:params->#{paramsDeclare.join(' ')}"
+        @[name] = (args...)=>
+            if not @tunnel.isReady
+                console.log "#{@name}:service not ready,buffer RPC calls"
+                @callBuffer.push {name:name,args:args}
+                return false
+            if typeof args[args.length-1] isnt "function"
+                params = args
+                callback = null
+            else
+                params = args.splice(0,args.length-1)
+                callback = args[0]
+            request = {
+                id:Math.floor(Math.random()*1000000)
+                ,params:params
+                ,name:name 
+                ,callback:callback
+                }
+            @_requests.push request
+            @tunnel.write(request)
+class RPCServer
+    constructor:(tunnel)->
+        @publicCalls = []
+        if tunnel
+            @setTunnel(tunnel)
+    setTunnel:(tunnel)->
+        console.assert tunnel
+        tunnelId = parseInt(Math.random()*100000)
+        @tunnelId = tunnelId
+        @tunnel = tunnel
+        @tunnel.on "data",(data)=>
+            console.log "recieve",data
+            if tunnelId isnt @tunnelId
+                # tunnel changed\
+                console.log "tunnel changed" 
+                return
+            
+            @handleRequest(data)
+    declare:(name)->
+        if typeof @[name] is "function"
+            @publicCalls.push name
+            return true
+        return false
+    handleRequest:(request)->
+        
+        # request object will be modified
+        # callback(resp)
+        if not request.id or request.name not in @publicCalls
+            # fail silently because this tunnel might be used
+            # in other way,say, as an bidirection tunnel
+            # use an single tunnel to connect both
+            # server side RPC server/interface and client side RPC server/interface
+            return
+        # params length should match
+        # length + 1 is for callback
+        if request.params instanceof Array and @[request.name].length is (request.params.length+1)
+            request.params.push (err,data)=>
+                response = {
+                    err:err
+                    ,data:data
+                    ,ticket:request.id
+                }
+                if @tunnel
+                    @tunnel.write response
+                return
+            @[request.name].apply(this,request.params)
+        else
+            response = {
+                err:"Invalid Params"
+                ,data:null
+                ,ticket:request.id
+                ,request:request
+                }
+            if @tunnel
+                @tunnel.write response
+            return
+
+
+exports.NodeWSTunnel = NodeWSTunnel
+exports.WebSocketTunnel = WebSocketTunnel
+exports.RPCInterface = RPCInterface
+exports.RPCServer = RPCServer
