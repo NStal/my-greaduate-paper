@@ -1,9 +1,9 @@
-# Title: An HTML5 WebBased Base 3D rendering Game,一款基于HTML5 WebGL的3D建模工具
+# Title: An HTML5 WebBased Base 3D rendering Game,一款基于HTML5 WebGL的3D游戏.
 # 简介
 keyword: WebGL html5 websocket 3D 物理引擎 跨平台游戏 threejs nodejs
-这是一款利用了websocket,html5,webgl,nodejs等新技术编写的一款3D多人联机对战游戏.在很长一段时间里web仅仅使用做普通的网页浏览并没有用作别的什么更加复杂的活动,而如今随着w3c组织的活跃和各大浏览器厂商的不断创新和尝试,web平台被赋予了更多的价值可能性.随着新的HTML5的API的开放比如webgl和websocket,在浏览器上有了发展新的应用的可能性了.另一方面通过使用javascript的后端渲染技术--nodejs,我们能够更好的实现跨平的兼容,甚至前端和后端共享一份代码,而本文就为探索这种可能性做了一次尝试. 探索了跨同台的web3D游戏的制作.
+这是一款利用了websocket,html5,webgl,nodejs等新技术编写的一款3D多人联机对战游戏.在很长一段时间里web仅仅使用做普通的网页浏览并没有用作别的什么更加复杂的活动,而如今随着w3c组织的活跃和各大浏览器厂商的不断创新和尝试,web平台被赋予了更多的价值可能性.随着新的HTML5的API的开放比如webgl和websocket,在浏览器上有了发展新的应用的可能性了.另一方面通过使用javascript的后端渲染技术--nodejs,我们能够更好的实现跨平的兼容,甚至前端和后端共享一份代码,而这里就为探索这种可能性做了一次尝试. 探索了跨同台的web3D游戏的制作.
 
-
+This is A game using websicket html5 webgl and nodejs techs that construct a new online 3D multi-player battle game.In a long time web is only used for normal webpage displaying and no complicated tasks was asigned to it.But when time pasts,orgnizations like w3c and the browser venders has try and try to do mo inovations, and the web platforms has been assigned to more possibilities.With the come out of the new HTML5 APIs such as webgl and websocket,we have much more chance to build new apps.On the other hand using javascript (ndoejs) as an backend render techs, we can achieves better cross platform comtapability, and Event share some of the codes.And here we explore the possibility of cross platform web game making.
 # 正文
 ## 研究背景
 随着时间和科技的发展,各种各样的平台出现了,随着时间段的推移,新的平台会出现,人们有序要对新的平台进行开发.这样会消耗大量的成本。那么为了避免这种问题,我们可以选择在虚拟机上开发程序(比如使用Java)或者选择用浏览器(Web)这种在任何设备上都能兼容运行的程序来编写我们的通用程序.
@@ -170,57 +170,56 @@ state 之前描述的舰船的状态
 
 所以在我们去任何进一步的，我将定义一个对象的状态作为一个struct在C + +中，使我们方便地存储在一个地方的位置和速度值。
 
-    结构国家
+    strcuct
     {
-         浮法X; / /位置
-         浮动V; / /速度
+         float X; / /位置
+         float V; / /速度
     };
 我们还需要一个结构存储的状态值的衍生工具，所以我们可以很容易地通过各处的功能。我们存储的衍生物是速度和加速度：
 
-    结构衍生
+    struct Derivative
     {
-         浮动DX; / /衍生工具的位置是：速度
-         浮动DV / /衍生物速度：加速
+         float DX; / /衍生工具的位置是：速度
+         float DV / /衍生物速度：加速
     };
 拼图的最后一块，我们需要实现RK4积分功能可以提前前面的物理状态从T到T + DT使用一组衍生工具，那么一旦出现，使用这个新的状态重新计算的衍生工具。此例程是心脏的RK4积分的和C + +中实现时，它看起来像这样：
-
-    衍生评价（常量国家与初始，浮法T，DT浮动，常量衍生＆D）
+								    Derivative evaluate(const State &initial, float t, float dt, const Derivative &d)
     {
-         State状态;
-         state.x = initial.x + d.dx * DT;
-         state.v = initial.v + d.dv * DT;
+         State state;
+         state.x = initial.x + d.dx*dt;
+         state.v = initial.v + d.dv*dt;
 
-         衍生输出;
+         Derivative output;
          output.dx = state.v;
-         output.dv =加速度（状态，t + DT）;
-         返回输出;
+         output.dv = acceleration(state, t+dt);
+         return output;
     }
+
 这绝对是至关重要的，你明白这种方法做。首先，它需要的对象的当前状态（位置和速度）及垫款未来DT秒（速度和加速度）的衍生工具，通过使用欧拉整合步骤。一旦这个新的位置和速度进行计算，计算新的衍生产品，在这个时间点上使用集成的状态。这些衍生工具会有所不同，最初通过衍生工具的方法，如果在时间步长是不恒定的衍生。
 
 为了计算的衍生工具，它会将当前状态的速度进入衍生结构（这是同时进行位置和速度集成的伎俩），那么它调用的加速功能，计算出加速度的当前状态在时间t + DT。加速功能，是推动整个仿真的例子源代码这篇文章中，我把它定义为如下：
 
-    浮法加速度（const的国家与国家，浮法吨）
+    float acceleration(const State &state, float t)
     {
-         常量浮动K = 10;
-         常量浮动B = 1;
-         ，返回K * state.x - B * state.v;
+         const float k = 10;
+         const float b = 1;
+         return -k * state.x - b*state.v;
     }
 这种方法计算出的弹簧和阻尼力，并返回它作为加速假设单位质量。你当然这里写的是完全依赖于模拟，但它是至关重要的，你构建你的模​​拟在这样一个方式，它可以计算的加速度或力的衍生品完全从里面这种方法的当前状态和时间，否则你的模拟可以不工作的RK4积分。
 
 最后，我们得到的整合程序本身集成了状态提前从T到T + DT使用RK4：
-
-    无效集成（国家与国家，T，浮浮DT）
+    void integrate(State &state, float t, float dt)
     {
-         衍生=评估（状态，t，0.0F，衍生工具（））;
-         衍生物B =评估（州，T，DT * 0.5F）;
-         衍生C =评估（州，T，DT * 0.5，B）;
-         衍生物D =评估（州，T，DT，C）;
+         Derivative a = evaluate(state, t, 0.0f, Derivative());
+         Derivative b = evaluate(state, t, dt*0.5f, a);
+         Derivative c = evaluate(state, t, dt*0.5f, b);
+         Derivative d = evaluate(state, t, dt, c);
 
-         常量浮动dxdt = 1.0f/6.0f *（a.dx + 2.0F *（b.dx + c.dx）+ d.dx）;
-         常量浮动DVDT = 1.0f/6.0f *（a.dv + 2.0F *（b.dv + c.dv）+ d.dv）
+         const float dxdt = 1.0f/6.0f * (a.dx + 2.0f*(b.dx + c.dx) + d.dx);
+         const float dvdt = 1.0f/6.0f * (a.dv + 2.0f*(b.dv + c.dv) + d.dv)
 
-         state.x = state.x + DXDT * DT;
-         state.v = state.v + DVDT * DT;
+         state.x = state.x + dxdt * dt;
+         state.v = state.v + dvdt * dt;
     }
 请注意，多次调用评估弥补这个例程。 RK4样品衍生四次检测曲率，而不是仅仅一次欧拉积分。重要的是要了解它是如何做这种抽样。
 
@@ -231,7 +230,65 @@ state 之前描述的舰船的状态
 请注意，即使当使用一个复杂的集成，如RK4，这一切都归结到的东西= + *时间的变化的东西改变的东西。这是因为分化和整合，从根本上是线性的操作。现在我们只是将单个值，但放心，这一切都结束了这样的整合载体时，四元，甚至旋转动力学和矩阵。
 
 
-#####缓动和速度和旋转判定判定.
+#####缓动和速度和旋转判定和碰撞检测.
 首先所有的操作对实际3D物件的影响都是直接改动的force属性,然后force属性根据物体的质量生成加速度,再跟据前述的RK4算法对离散的时间进行拟合.这样打来的速度总是缓慢的变化这的,并且在最终趋近于稳定.
 
+碰撞检测并不是采用的最完美遍历所有object的方式.首先我们会针对每个可以参与碰撞检测的物件建立一个表单,当需要判定碰撞的时候针对这个表单里面的物件进行判断.传统的三维碰撞检测的判断需要对物体的每个面进行判断,但是为了能够容忍大量的飞船在三维空间中同时存在而导致的效率急剧下降,我们参用了简化版本的三维碰撞检测,首先我们需要判断两个碰撞的物体是否远大于他们的最大三维尺寸加上他们的速度,如果确实是大于那么就不需要做更加复杂深入的判断.当他慢确实在相应的距离里的时候,我们针对两个物体的运动速度取其合,并且在最后得到的速度方向上做射线,计算涉嫌和目标点的距离,最后判断目标点的距离和射线其实点的距离到底有多大的差距,当差距在一个速度单位之内的情况下我们认为他们家下来的一个单位时间里会相交,也就是说会碰撞,否则我们认为他们不会碰撞.
 
+如果我们认定他们会发生碰撞那么碰撞点就取目标物体到射线上的垂直投影,认为这个投影点映射到真实的三维空间里去的点就是他们在真是三维空间里的相交点.然后针对所有需要做碰撞的物体如果是量两之间那么可以通便单次运算从而避免复杂的重复计算.
+
+通过采用这种大大优化过了的碰撞检测方式我们可以最大程度的将运算避免,从而总体上提高了碰撞检测的效果,并且依然保证了肉眼可以验证的运算效率.可以在20ms内对将近1000个物体进行碰撞检测而丝毫没有什么问题.
+
+
+### 渲染引擎简介
+#### webgl + threejs.
+#### scene 和 camera 和 
+一个三维的场景大体上来说有两个最基本的元素构成他们就是scene和camera.scene决定了整体的渲染方式,比如是否有雾气,能见度是多少.而camera则决定了最终我们如何从三维场景中投影到二维场景.主要的参数有FOV,far,near,其中far和near分别定义了离camera最远和最近的可视距离.FOV的全称是field of view.定义了三维场景中的景物投影到平面二维成像时的成像方式,FOV过小就会呈现出鱼眼镜头的感觉.一般设置在35-45之间会有比较好的效果.
+
+#### cubemap world
+为了营造我们的飞船在宇宙空间中飞行的效果,我们用一个非常大的正方体当作宇宙空间,然后把飞船放在里面,在这个非常大的正方体内壁贴上宇宙世界的纹理,这种技术就叫做cubemap.通过把立方体的大小设置成非常大的方式,我们就能够让人产生飞船怎么飞也不会飞到宇宙的边缘的错觉从而达到了模拟玩家在宇宙中飞行的目的.
+
+#### Reflection
+为了营造更好的飞船的视觉效果,我为飞船加上了镜面反射的特效,通过调整光线对飞船材质的满反射和镜面发射的成效比,达到了非常好的视觉特效营造了一种高端大气的科技感觉.Reflection是在原有的点阵和法向量和颜色矩阵的基础之上增加了一个反射矩阵和反射贴图.
+
+反射贴图的选取有两种方式,第一种是没每一桢的时候都从目标的视角再次渲染一边整个场景,然后渲染的结果就作为额外的贴图根据反射比例粘贴到目标物体的表面上去。第二种就是使用县城整个世界的cubemap world作为额外的贴图粘贴到物体上面去,在大型的场景下,两种方式做带来的视觉上的变化并不是非常的明显但是性能上的差距则是天壤之别,前者由于无法预先计算而且根据物体的数量的变化所需要进行的重复计算非常非常的多,随着物体的增加效率会下降的非常非常的严重因此我们还是选用后面的一种方式作为我们游戏中的主要反射的选方式.
+
+#### 让摄像机追踪我们的主要物体.
+首先让根据我们需要追踪的主要物体的旋转角度(也就是四元数quaternion),将我们所需要追踪的物体和摄像机之间的默认距离作为向量(l,0,0)根据quaternion进行进行旋转然后加上主要物体原来的坐标值,最后生成的就是我们的主要相机的位置,然后针对主要相机的位置做矩阵旋转,这里我们直接调用Threejs中封装好了的lookat方法,计算出让相机和目标位置所构成的直线与相机方向相同所需要的矩阵旋转值.之后每一桢都会设置他.
+
+#### HUD 和3D到2D的矩阵投影.
+平视显示器（Head Up Display），以下简称HUD，是目前普遍运用在航空器上的飞行辅助仪器。平视的意思是指飞行员不需要低头就能够看到他需要的重要资讯。平视显示器最早出现在军用飞机上，降低飞行员需要低头查看仪表的频率，避免注意力中断以及丧失对状态意识(Situation Awareness）的掌握。因为HUD的方便性以及能够提高飞行安全，民航机也纷纷跟进安装。部分汽车业者也以类似的装置作为行销的手段吸引顾客，不过使用上并不广泛。
+
+HUD是利用光学反射的原理，将重要的飞行相关资讯投射在一片玻璃上面。这片玻璃位于座舱前端，文字和影像被投射在镀膜镜片(析光镜)并平衡反射进飞行员的眼睛。飞行员透过HUD往前方看的时候，能够轻易的将外界的景象与HUD显示的资料融合在一起。由于反射进眼睛中的影像永远与飞机的中轴平衡，所以飞行员的身高不会对俯仰角或目视瞄准造成偏差。HUD设计的用意是让飞行员不需要低头查看仪表的显示与资料，始终保持抬头的姿态，降低低头与抬头之间忽略外界环境的快速变化以及眼睛焦距需要不断调整产生的延迟与不适。
+HUD投射的资料主要与飞行安全有重要关系，譬如飞行高度，飞行速度，航向，垂直速率变化，飞机倾斜角度等等。使用于战斗环境时，还会加上目标资料，武器，目视瞄准器与发射的相关资料，预估命中点等等。这些显示的资料能够根据不同状况而变换。
+
+通过在游戏中引入HUD设备,我们可以大大的提高游戏的体验让游戏具有更好的可玩性.
+(图片网址)[http://hiphotos.baidu.com/twjblog/pic/item/69e2f8ab38a856997dd92ac7.jpg]
+
+#### Shader Pass 和 Compose  Renderer
+通过撰写Shader程序我们可以很好的利用GPU加速的方式给游戏提高效率.而为了实现一些复杂的视觉特效我们使用多重Shader也就是Shader Pass和Compose Renderer来实现对buffer的多次渲染来大道特殊的效果.
+
+这里我们写了一个高斯模糊的特效.因为直接做5阶级的高斯模糊的算法复杂度过高导致无法在事实渲染的过程中对整个画面做完整的高斯模糊.这个时候我们在图形纵向的5个单位上做一次高斯模糊,其算法作为一个ShaderPass,然后再在另一个维度上做5个单位的高斯模糊,作为另外一个ShaderPass,然后通过Compose Renderer再回合到普通的webgl 画布上去,从而最终实现了完整的高斯模糊特效.
+
+
+# 结论和总结
+通过使用最新的HTML5技术和webgl,websocket等标准,我们利用一些类似nodejs和threejs等强大的第三方工具完整的实现了一个3Dweb的联机对战游戏.为探索了给予Web的3D建模方式,制作出了一款基于Web的3D建模工具.
+
+
+# 致谢
+感谢大学四年来对我不离不弃的同学们,帮助我度过了大学中的一个有一个难关,让我突破了一个又一个的技术难点,我从一个什么都不懂的学生成长为如今的优秀毕业生,并且能够完整的写出一片可以运行的游戏,这在我刚入大学的时候是不可以想象的.但如今我却确确实实的在这里,我不得不表示对那些给予我帮助的同学们以由衷的感谢.另外感谢大学四年来教我所有课程的所有老师,是你们给了我知识,是你们让我变得与众不同,如果没有你们想必我是不可能写出这篇论文的,没有你们我更时不可能座位一个优秀的学生而毕业的.然后我要感谢我的父母,是你们这么多年辛勤的把我养育大,在我论文书写不顺利的时候鼓励我,然我有了写下去的激情和动力,是你们为我做了一次又一次的饭,让我感受到了人生的美好.最后,我要感谢我这篇论文的指导老师胡卫军,是在您的指导下我才能够顺利的完成论文,实现重要的技术突破,从而作为一名学生毕业.如今,我要感谢你们,真的感谢你们,因为你们我才能够实现一个学生的目标.谢谢!
+
+# 参考文献
+[1] John Congote EAFIT University, Medellín, Colombia Alvaro Segura Vicomtech Research Cente, Donostia - San Sebastian, Spain Luis Kabongo Vicomtech Research Center, Donostia - San Sebastian, Spain.Web3D '11 Proceedings of the 16th International Conference on 3D Web Technology Pages 137-146 
+
+[2] Benjamin P. DeLilloRochester Institute of Technology SIGGRAPH '10 ACM SIGGRAPH 2010 Posters Article No. 135 
+
+[3] Bijin Chen ; Sch. of Comput. Sci. & Eng., South China of Univ., Guangzhou, China ; Zhiqi Xu;A framework for browser-based Multiplayer Online Games using WebGL and WebSocket.Multimedia Technology (ICMT), 2011 International Conference on.Page(s): 471 - 474.
+
+[4] Tilkov, S. ; Vinoski, S.node.js: Using JavaScript to Build High-Performance Network Programs.Internet Computing, IEEE  (Volume:14 ,  Issue: 6 ) Date of Publication: Nov.-Dec. 2010
+
+[5] mrdoob JavaScript 3D library https://github.com/mrdoob/three.js/
+
+[6] W3C http://www.w3.org/TR/2009/WD-websockets-20091222/
+
+[7] 欧阳慧琴,陈福民 物理引擎与图形渲染引擎绑定的研究与实现 同济大学计算机中心,上海,200092
