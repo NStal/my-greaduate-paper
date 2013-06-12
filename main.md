@@ -57,7 +57,7 @@ WebSocket是HTML5开始提供的一种浏览器与服务器间进行全双工通
 握手协议 [编辑]
 
 在实现websocket连线过程中，需要透过浏览器发出websocket连线请求，然后服务器发出回应，这个过程通常称为“握手” (handshaking)。
-PS:后期的版本大多属于功能上的扩充，例如使用第7版的握手协议同样也适用于第8版的握手协议。
+后期的版本大多属于功能上的扩充，例如使用第7版的握手协议同样也适用于第8版的握手协议。
 例子 [编辑]
 为第13版且浏览器为Chrome的例子
 浏览器请求
@@ -183,8 +183,7 @@ state 之前描述的舰船的状态
          float DV / /衍生物速度：加速
     };
 拼图的最后一块，我们需要实现RK4积分功能可以提前前面的物理状态从T到T + DT使用一组衍生工具，那么一旦出现，使用这个新的状态重新计算的衍生工具。此例程是心脏的RK4积分的和C + +中实现时，它看起来像这样：
-								    Derivative evaluate(const State &initial, float t, float dt, const Derivative &d)
-    {
+								Derivative evaluate(const State &initial, float t, float dt, const Derivative &d){
          State state;
          state.x = initial.x + d.dx*dt;
          state.v = initial.v + d.dv*dt;
@@ -193,13 +192,13 @@ state 之前描述的舰船的状态
          output.dx = state.v;
          output.dv = acceleration(state, t+dt);
          return output;
-    }
+}
 
 这绝对是至关重要的，你明白这种方法做。首先，它需要的对象的当前状态（位置和速度）及垫款未来DT秒（速度和加速度）的衍生工具，通过使用欧拉整合步骤。一旦这个新的位置和速度进行计算，计算新的衍生产品，在这个时间点上使用集成的状态。这些衍生工具会有所不同，最初通过衍生工具的方法，如果在时间步长是不恒定的衍生。
 
 为了计算的衍生工具，它会将当前状态的速度进入衍生结构（这是同时进行位置和速度集成的伎俩），那么它调用的加速功能，计算出加速度的当前状态在时间t + DT。加速功能，是推动整个仿真的例子源代码这篇文章中，我把它定义为如下：
 
-    float acceleration(const State &state, float t)
+float acceleration(const State &state, float t)
     {
          const float k = 10;
          const float b = 1;
@@ -292,3 +291,4 @@ HUD投射的资料主要与飞行安全有重要关系，譬如飞行高度，�
 [6] W3C http://www.w3.org/TR/2009/WD-websockets-20091222/
 
 [7] 欧阳慧琴,陈福民 物理引擎与图形渲染引擎绑定的研究与实现 同济大学计算机中心,上海,200092
+测试
